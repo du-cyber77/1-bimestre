@@ -23,6 +23,7 @@ class AlunoFactory extends Factory
             'nome_responsavel' => $this->faker->name(),
             'data_nascimento' => $this->faker->date(),
             'obs' => $this->faker->sentence(),
+            'turma_id' => \App\Models\Turma::inRandomOrder()->first()->id, 
         ];
     }
 }

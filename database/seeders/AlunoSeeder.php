@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Aluno; // <-- Verifique se esta linha de importação existe
+use App\Models\Aluno; 
 
 class AlunoSeeder extends Seeder
 {

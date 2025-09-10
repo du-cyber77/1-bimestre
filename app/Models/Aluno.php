@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory; // <-- Verifique esta linha
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Aluno extends Model
 {
-    use HasFactory; // <-- E esta linha
+    use HasFactory;
 
     protected $fillable = [
         'nome_aluno',
@@ -16,5 +16,11 @@ class Aluno extends Model
         'numero_pasta',
         'data_nascimento',
         'obs',
+        'turma_id', 
     ];
+
+    public function turma()
+    {
+        return $this->belongsTo(Turma::class);
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Aluno;
 use Illuminate\Http\Request;
+use App\Models\Turma;
 
 class AlunoController extends Controller
 { // <-- Chave de abertura da CLASSE
@@ -12,28 +13,42 @@ class AlunoController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    { // <-- Chave de abertura da função index
-        $query = Aluno::query();
+{
+    // Pega os parâmetros de ordenação da URL, com valores padrão 'id' e 'asc'
+    $sort = $request->input('sort', 'id');
+    $direction = $request->input('direction', 'asc');
 
-        if ($request->has('search') && $request->input('search') != '') {
-            $search = $request->input('search');
-            $query->where('nome_aluno', 'like', "%{$search}%")
-                  ->orWhere('numero_caixa', 'like', "%{$search}%")
-                  ->orWhere('numero_pasta', 'like', "%{$search}%");
-        }
+    // Lista de colunas permitidas para ordenação (para segurança)
+    $allowedSorts = ['id', 'nome_aluno', 'data_nascimento'];
+    if (!in_array($sort, $allowedSorts)) {
+        $sort = 'id';
+    }
 
-        $alunos = $query->paginate(10);
+    $query = Aluno::query();
 
-        return view('alunos.index', compact('alunos'));
-    } // <-- Chave de fechamento da função index
+    if ($request->has('search') && $request->input('search') != '') {
+        $search = $request->input('search');
+        $query->where('nome_aluno', 'like', "%{$search}%")
+              ->orWhere('numero_caixa', 'like', "%{$search}%")
+              ->orWhere('numero_pasta', 'like', "%{$search}%");
+    }
 
+    // Aplica a ordenação na consulta
+    $query->orderBy($sort, $direction);
+
+    $alunos = $query->paginate(10);
+
+    // Envia os alunos e também os parâmetros de ordenação para a view
+    return view('alunos.index', compact('alunos', 'sort', 'direction'));
+}
     /**
      * Show the form for creating a new resource.
      */
     public function create()
-    { // <-- Chave de abertura da função create
-        return view('alunos.create');
-    } // <-- Chave de fechamento da função create
+{
+    $turmas = Turma::all(); // Busca todas as turmas
+    return view('alunos.create', compact('turmas')); // Envia para a view
+}
 
     /**
      * Store a newly created resource in storage.
@@ -48,6 +63,7 @@ class AlunoController extends Controller
         'numero_pasta' => 'required|string|max:50',
         'data_nascimento' => 'required|date',
         'obs' => 'nullable|string',
+        'turma_id' => 'nullable|exists:turmas,id' 
     ]);
 
     // 2. Passe APENAS os dados validados para o create()
@@ -60,18 +76,21 @@ class AlunoController extends Controller
      * Display the specified resource.
      */
     public function show(Aluno $aluno)
-    {
-        //
-    }
+{
+    // Graças ao Route Model Binding, o Laravel já encontrou o aluno
+    // pelo ID na URL e o injetou aqui na variável $aluno.
+    // Nós só precisamos retornar a view e passar o aluno para ela.
+    return view('alunos.show', compact('aluno'));
+}
 
     /**
      * Show the form for editing the specified resource.
      */
     public function edit(Aluno $aluno)
-{
-    // Retorna a view de edição, passando os dados do aluno que será editado
-    return view('alunos.edit', compact('aluno'));
-}
+    {
+    $turmas = Turma::all(); // Busca todas as turmas
+    return view('alunos.edit', compact('aluno', 'turmas')); // Envia para a view
+    }
 
     /**
      * Update the specified resource in storage.
@@ -86,6 +105,7 @@ class AlunoController extends Controller
         'numero_pasta' => 'required|string|max:50',
         'data_nascimento' => 'required|date',
         'obs' => 'nullable|string',
+        'turma_id' => 'nullable|exists:turmas,id' 
     ]);
 
     // Atualiza o registro do aluno com os dados validados
@@ -106,4 +126,4 @@ class AlunoController extends Controller
     return redirect('/')->with('success', 'Aluno excluído com sucesso!');
 }
 
-} // <-- A CHAVE MAIS IMPORTANTE: fechamento da CLASSE
+} // <-- Chave de fechamento da CLASSE
