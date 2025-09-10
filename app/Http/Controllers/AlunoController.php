@@ -14,33 +14,43 @@ class AlunoController extends Controller
      */
     public function index(Request $request)
 {
-    // Pega os parâmetros de ordenação da URL, com valores padrão 'id' e 'asc'
+    // Parâmetros de ordenação (código que já tínhamos)
     $sort = $request->input('sort', 'id');
     $direction = $request->input('direction', 'asc');
-
-    // Lista de colunas permitidas para ordenação (para segurança)
     $allowedSorts = ['id', 'nome_aluno', 'data_nascimento'];
     if (!in_array($sort, $allowedSorts)) {
         $sort = 'id';
     }
 
+    // Busca todas as turmas para popular o filtro no formulário
+    $turmas = Turma::all();
+
     $query = Aluno::query();
 
-    if ($request->has('search') && $request->input('search') != '') {
-        $search = $request->input('search');
-        $query->where('nome_aluno', 'like', "%{$search}%")
-              ->orWhere('numero_caixa', 'like', "%{$search}%")
-              ->orWhere('numero_pasta', 'like', "%{$search}%");
+    // FILTROS AVANÇADOS
+    // Adiciona a condição do filtro de nome, se ele for preenchido
+    if ($request->filled('filtro_nome')) {
+        $query->where('nome_aluno', 'like', '%' . $request->input('filtro_nome') . '%');
     }
 
-    // Aplica a ordenação na consulta
+    // Adiciona a condição do filtro de responsável, se ele for preenchido
+    if ($request->filled('filtro_responsavel')) {
+        $query->where('nome_responsavel', 'like', '%' . $request->input('filtro_responsavel') . '%');
+    }
+
+    // Adiciona a condição do filtro de turma, se uma for selecionada
+    if ($request->filled('filtro_turma_id')) {
+        $query->where('turma_id', $request->input('filtro_turma_id'));
+    }
+
+    // Aplica a ordenação
     $query->orderBy($sort, $direction);
 
-    $alunos = $query->paginate(10);
+    // Pagina os resultados e anexa os parâmetros da busca/filtro/ordenação aos links da paginação
+    $alunos = $query->paginate(10)->withQueryString();
 
-    // Envia os alunos e também os parâmetros de ordenação para a view
-    return view('alunos.index', compact('alunos', 'sort', 'direction'));
-}
+    return view('alunos.index', compact('alunos', 'turmas', 'sort', 'direction'));
+    }
     /**
      * Show the form for creating a new resource.
      */
