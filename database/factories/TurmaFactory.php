@@ -4,9 +4,6 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Turma>
- */
 class TurmaFactory extends Factory
 {
     /**
@@ -17,7 +14,8 @@ class TurmaFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            // Gera um nome como "Turma 123". O unique() garante que o número não se repita.
+            'nome' => 'Turma ' . $this->faker->unique()->numberBetween(100, 399),
         ];
     }
 }

@@ -27,3 +27,7 @@ class AlunoFactory extends Factory
         ];
     }
 }
+
+
+//php artisan migrate:fresh --seed
+

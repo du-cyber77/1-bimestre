@@ -9,7 +9,15 @@ class Turma extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome']; // Permite a criação em massa do nome
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    // ADICIONE ESTA PROPRIEDADE
+    protected $fillable = [
+        'nome',
+    ];
 
     public function alunos()
     {

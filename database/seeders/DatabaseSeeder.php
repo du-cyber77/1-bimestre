@@ -9,11 +9,13 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void 
+    public function run(): void
     {
-    $this->call([
-        TurmaSeeder::class, 
-        AlunoSeeder::class,
-    ]);
-}
+        // Garanta que esta seção de "call" esteja correta.
+        // O TurmaSeeder PRECISA vir antes do AlunoSeeder.
+        $this->call([
+            TurmaSeeder::class,
+            AlunoSeeder::class,
+        ]);
+    }
 }

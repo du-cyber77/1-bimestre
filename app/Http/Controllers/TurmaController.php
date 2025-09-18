@@ -8,11 +8,21 @@ use Illuminate\Http\Request;
 class TurmaController extends Controller
 {
     // Listar todas as turmas
-    public function index()
-    {
-        $turmas = Turma::paginate(10);
-        return view('turmas.index', compact('turmas'));
+    public function index(Request $request)
+{
+    // Inicia a construção da consulta
+    $query = Turma::query();
+
+    // Se um filtro de nome for enviado, adiciona a condição à consulta
+    if ($request->filled('filtro_nome')) {
+        $query->where('nome', 'like', '%' . $request->input('filtro_nome') . '%');
     }
+
+    // Executa a consulta com paginação e anexa os filtros aos links de paginação
+    $turmas = $query->paginate(10)->withQueryString();
+
+    return view('turmas.index', compact('turmas'));
+}
 
     // Mostrar formulário de criação
     public function create()

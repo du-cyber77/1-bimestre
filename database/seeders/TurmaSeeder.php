@@ -3,18 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Turma; // Importe o Model
+use App\Models\Turma;
 
 class TurmaSeeder extends Seeder
 {
     public function run(): void
     {
-        // // Código antigo
-        // Turma::create(['nome' => 'Turma 101']);
-        // Turma::create(['nome' => 'Turma 201']);
-        // Turma::create(['nome' => 'Turma 301']);
-
-        // Novo código usando a Factory para criar 10 turmas
+        // Garanta que apenas esta linha está ativa.
+        // As linhas antigas com Turma::create() devem estar apagadas ou comentadas.
         Turma::factory()->count(10)->create();
     }
 }
