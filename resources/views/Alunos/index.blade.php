@@ -21,7 +21,7 @@
         <div class="col-lg-4 col-md-12 mb-3"><div class="card text-white bg-info shadow-sm h-100"><div class="card-body d-flex justify-content-between align-items-center"><div>@if($turmaMaisAlunos && $turmaMaisAlunos->alunos_count > 0)<h5 class="card-title fs-4">{{ $turmaMaisAlunos->nome }}</h5><p class="card-text">Turma Destaque ({{ $turmaMaisAlunos->alunos_count }} alunos)</p>@else<h5 class="card-title fs-4">-</h5><p class="card-text">Nenhuma turma com alunos</p>@endif</div><i class="fas fa-star fa-3x opacity-50"></i></div></div></div>
     </div>
 
-    <h3 class="mt-5 border-bottom pb-2 mb-3">Busca Dinâmica de Alunos</h3>
+    <h3 class="mt-5 border-bottom pb-2 mb-3">Listagem Dinâmica de Alunos</h3>
 
     <form id="filter-form" class="mb-4 p-3 border rounded bg-light" onsubmit="return false;">
         <div class="row g-3 align-items-end">

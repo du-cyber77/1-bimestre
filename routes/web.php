@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AlunoController;
 use App\Http\Controllers\TurmaController;
-
+use App\Http\Controllers\ReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -26,3 +26,5 @@ Route::resource('alunos', AlunoController::class)->except(['index']);
 
 // Rotas de resource para Turmas
 Route::resource('turmas', TurmaController::class);
+
+Route::get('/relatorios', [ReportController::class, 'index'])->name('reports.index');

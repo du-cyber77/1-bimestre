@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gerenciamento de Turmas')
+@section('title', 'Turmas - CIEP 1402')
 
 @section('content')
 

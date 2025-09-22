@@ -12,7 +12,7 @@
         <h1 class="mb-0 display-5">{{ $turma->nome }}</h1>
     </div>
     
-    {{-- O BOTÃO PARA ADICIONAR ALUNOS --}}
+    {{-- Este é o botão que vamos fazer funcionar --}}
     <button id="add-aluno-btn" class="btn btn-success btn-lg" data-turma-id="{{ $turma->id }}">
         <i class="fas fa-user-plus me-2"></i>Adicionar Aluno à Turma
     </button>
@@ -59,42 +59,5 @@
         </div>
     </div>
 </div>
-
-{{-- A modal de formulário do Aluno que já existe no seu layout principal será reutilizada aqui. --}}
-{{-- Não precisamos duplicar o HTML dela. --}}
-
+{{-- O @push('scripts') foi removido daqui, pois a lógica agora é global --}}
 @endsection
-
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const addAlunoBtn = document.getElementById('add-aluno-btn');
-    if (addAlunoBtn) {
-        addAlunoBtn.addEventListener('click', function() {
-            const turmaId = this.dataset.turmaId;
-            
-            // Reutiliza a função global que criamos para abrir a modal de formulário
-            // Esta função deve existir no seu script principal (ex: index.blade.php dos alunos ou app.blade.php)
-            if (typeof openFormModal === 'function') {
-                const createUrl = '{{ route("alunos.create") }}';
-                openFormModal(createUrl, 'Cadastrar Novo Aluno');
-
-                // Aqui está o truque: esperamos o formulário carregar e então pré-selecionamos a turma
-                const modalElement = document.getElementById('formModal');
-                modalElement.addEventListener('shown.bs.modal', function handler() {
-                    const turmaSelect = modalElement.querySelector('#turma_id');
-                    if (turmaSelect) {
-                        turmaSelect.value = turmaId;
-                    }
-                    // Remove o listener para não ser executado múltiplas vezes
-                    modalElement.removeEventListener('shown.bs.modal', handler);
-                });
-
-            } else {
-                console.error('A função openFormModal não foi encontrada. Certifique-se de que ela está disponível globalmente.');
-            }
-        });
-    }
-});
-</script>
-@endpush

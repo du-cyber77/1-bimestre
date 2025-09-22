@@ -6,8 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Sistema CIEP 1402')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    {{-- CSS do Bootstrap via CDN --}}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    {{-- CSS do Font Awesome para ícones --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
     <style>
         body { background-color: #f8f9fa; }
         .table-hover tbody tr:hover { background-color: rgba(0, 0, 0, 0.05); cursor: pointer; }
@@ -15,7 +19,6 @@
     </style>
 </head>
 <body>
-    {{-- A navbar continua a mesma --}}
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="{{ route('home') }}"><i class="fa-solid fa-school me-2"></i>CIEP 1402</a>
@@ -24,14 +27,20 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="{{ route('home') }}"><i class="fa-solid fa-user-graduate me-1"></i>Alunos</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->is('turmas*') ? 'active' : '' }}" href="{{ route('turmas.index') }}"><i class="fa-solid fa-chalkboard-user me-1"></i>Turmas</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->is('relatorios*') ? 'active' : '' }}" href="{{ route('reports.index') }}"><i class="fa-solid fa-chart-pie me-1"></i>Relatórios</a></li>
                 </ul>
+                
+                {{-- ESTE É O BOTÃO --}}
                 <div class="dropdown">
-                    <button class="btn btn-success dropdown-toggle" type="button" id="cadastroDropdown" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-plus me-2"></i>Cadastrar</button>
+                    <button class="btn btn-success dropdown-toggle" type="button" id="cadastroDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-plus me-2"></i>Cadastrar
+                    </button>
                     <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="cadastroDropdown">
                         <li><a class="dropdown-item" href="{{ route('alunos.create') }}"><i class="fas fa-user-graduate fa-fw me-2"></i>Novo Aluno</a></li>
                         <li><a class="dropdown-item" href="{{ route('turmas.create') }}"><i class="fas fa-chalkboard-user fa-fw me-2"></i>Nova Turma</a></li>
                     </ul>
                 </div>
+
             </div>
         </div>
     </nav>
