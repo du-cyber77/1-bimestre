@@ -4,68 +4,85 @@ namespace App\Http\Controllers;
 
 use App\Models\Turma;
 use Illuminate\Http\Request;
+// 1. IMPORTAMOS O NOSSO NOVO REQUEST
+use App\Http\Requests\StoreTurmaRequest;
 
 class TurmaController extends Controller
 {
-    // Listar todas as turmas
+    /**
+     * Display a listing of the resource.
+     */
     public function index(Request $request)
-{
-    // Inicia a construção da consulta
-    $query = Turma::query();
+    {
+        // Esta parte já estava correta, com a contagem de alunos
+        $query = Turma::withCount('alunos');
 
-    // Se um filtro de nome for enviado, adiciona a condição à consulta
-    if ($request->filled('filtro_nome')) {
-        $query->where('nome', 'like', '%' . $request->input('filtro_nome') . '%');
+        if ($request->filled('filtro_nome')) {
+            $query->where('nome', 'like', '%' . $request->input('filtro_nome') . '%');
+        }
+
+        $turmas = $query->paginate(10)->withQueryString();
+
+        return view('turmas.index', compact('turmas'));
     }
 
-    // Executa a consulta com paginação e anexa os filtros aos links de paginação
-    $turmas = $query->paginate(10)->withQueryString();
-
-    return view('turmas.index', compact('turmas'));
-}
-
-    // Mostrar formulário de criação
+    /**
+     * Show the form for creating a new resource.
+     */
     public function create()
     {
         return view('turmas.create');
     }
 
-    // Salvar nova turma no banco
-    public function store(Request $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    // 2. SUBSTITUÍMOS 'Request' por 'StoreTurmaRequest'
+    public function store(StoreTurmaRequest $request)
     {
-        $request->validate([
-            'nome' => 'required|string|max:255|unique:turmas,nome',
-        ]);
+        // A validação agora acontece AUTOMATICAMENTE!
+        // Adeus, bloco $request->validate()!
 
-        Turma::create($request->all());
+        // Usamos $request->validated() para pegar apenas os dados que foram validados, o que é mais seguro.
+        Turma::create($request->validated());
 
         return redirect()->route('turmas.index')->with('success', 'Turma criada com sucesso!');
     }
 
-    // Mostrar formulário de edição
+    /**
+     * Show the form for editing the specified resource.
+     */
     public function edit(Turma $turma)
     {
         return view('turmas.edit', compact('turma'));
     }
 
-    // Atualizar turma no banco
-    public function update(Request $request, Turma $turma)
+    /**
+     * Update the specified resource in storage.
+     */
+    // 3. FAZEMOS A MESMA SUBSTITUIÇÃO AQUI
+    public function update(StoreTurmaRequest $request, Turma $turma)
     {
-        $request->validate([
-            'nome' => 'required|string|max:255|unique:turmas,nome,' . $turma->id,
-        ]);
-
-        $turma->update($request->all());
+        // A validação também já foi feita aqui!
+        $turma->update($request->validated());
 
         return redirect()->route('turmas.index')->with('success', 'Turma atualizada com sucesso!');
     }
 
-    // Excluir turma do banco
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Turma $turma)
     {
+        // Esta lógica de segurança já estava correta.
+        if ($turma->alunos()->count() > 0) {
+            return redirect()->route('turmas.index')
+                             ->with('error', 'Esta turma não pode ser excluída, pois possui alunos vinculados.');
+        }
+
         $turma->delete();
-        // Lembre-se: os alunos desta turma não serão deletados,
-        // apenas o campo 'turma_id' deles ficará nulo, como definimos na migration.
+        
         return redirect()->route('turmas.index')->with('success', 'Turma excluída com sucesso!');
     }
 }
+
