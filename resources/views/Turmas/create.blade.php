@@ -6,7 +6,11 @@
     <hr>
     <form action="{{ route('turmas.store') }}" method="POST" novalidate>
         @include('turmas._form')
-        <a href="{{ route('turmas.index') }}" class="btn btn-secondary">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ route('turmas.index') }}" class="btn btn-secondary">
+    <i class="fas fa-times me-2"></i>Cancelar
+</a>
+<button type="submit" class="btn btn-primary">
+    <i class="fas fa-save me-2"></i>Salvar
+</button>
     </form>
 @endsection

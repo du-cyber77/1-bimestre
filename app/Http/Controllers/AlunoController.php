@@ -1,139 +1,84 @@
-<?php // <-- Certifique-se que o arquivo começa com isso
+<?php
 
 namespace App\Http\Controllers;
 
 use App\Models\Aluno;
-use Illuminate\Http\Request;
 use App\Models\Turma;
+use Illuminate\Http\Request;
+use App\Http\Requests\StoreAlunoRequest;
 
 class AlunoController extends Controller
-{ // <-- Chave de abertura da CLASSE
-
-    /**
-     * Display a listing of the resource.
-     */
-    public function index(Request $request)
 {
-    // Parâmetros de ordenação (código que já tínhamos)
-    $sort = $request->input('sort', 'id');
-    $direction = $request->input('direction', 'asc');
-    $allowedSorts = ['id', 'nome_aluno', 'data_nascimento'];
-    if (!in_array($sort, $allowedSorts)) {
-        $sort = 'id';
+    // O método index e search continuam os mesmos da busca dinâmica
+    public function index(Request $request)
+    {
+        $turmas = Turma::orderBy('nome')->get();
+        $alunos = Aluno::with('turma')->orderBy('nome_aluno', 'asc')->paginate(10);
+        $totalAlunos = Aluno::count();
+        $totalTurmas = Turma::count();
+        $turmaMaisAlunos = Turma::withCount('alunos')->orderByDesc('alunos_count')->first();
+        return view('alunos.index', compact('alunos', 'turmas', 'totalAlunos', 'totalTurmas', 'turmaMaisAlunos'));
     }
 
-    // Busca todas as turmas para popular o filtro no formulário
-    $turmas = Turma::all();
-
-    $query = Aluno::query();
-
-    // FILTROS AVANÇADOS
-    // Adiciona a condição do filtro de nome, se ele for preenchido
-    if ($request->filled('filtro_nome')) {
-        $query->where('nome_aluno', 'like', '%' . $request->input('filtro_nome') . '%');
+    public function search(Request $request)
+    {
+        $alunos = Aluno::with('turma')->nome($request->input('filtro_nome'))->responsavel($request->input('filtro_responsavel'))->turmaId($request->input('filtro_turma_id'))->orderBy('nome_aluno', 'asc')->get();
+        return response()->json($alunos);
     }
 
-    // Adiciona a condição do filtro de responsável, se ele for preenchido
-    if ($request->filled('filtro_responsavel')) {
-        $query->where('nome_responsavel', 'like', '%' . $request->input('filtro_responsavel') . '%');
-    }
 
-    // Adiciona a condição do filtro de turma, se uma for selecionada
-    if ($request->filled('filtro_turma_id')) {
-        $query->where('turma_id', $request->input('filtro_turma_id'));
-    }
-
-    // Aplica a ordenação
-    $query->orderBy($sort, $direction);
-
-    // Pagina os resultados e anexa os parâmetros da busca/filtro/ordenação aos links da paginação
-    $alunos = $query->paginate(10)->withQueryString();
-
-    return view('alunos.index', compact('alunos', 'turmas', 'sort', 'direction'));
-    }
     /**
-     * Show the form for creating a new resource.
+     * ATUALIZADO: Retorna apenas a view do formulário para a modal.
      */
     public function create()
-{
-    $turmas = Turma::all(); // Busca todas as turmas
-    return view('alunos.create', compact('turmas')); // Envia para a view
-}
+    {
+        $turmas = Turma::orderBy('nome')->get();
+        // Passamos um novo Aluno para o formulário não ter erros
+        $aluno = new Aluno();
+        return view('alunos._form', compact('aluno', 'turmas'));
+    }
 
     /**
-     * Store a newly created resource in storage.
+     * ATUALIZADO: Salva e retorna uma resposta JSON.
      */
-   public function store(Request $request)
-{
-    // 1. Guarde os dados validados em uma variável
-    $validatedData = $request->validate([
-        'nome_aluno' => 'required|string|max:255',
-        'nome_responsavel' => 'required|string|max:255',
-        'numero_caixa' => 'required|string|max:50',
-        'numero_pasta' => 'required|string|max:50',
-        'data_nascimento' => 'required|date',
-        'obs' => 'nullable|string',
-        'turma_id' => 'nullable|exists:turmas,id' 
-    ]);
+    public function store(StoreAlunoRequest $request)
+    {
+        Aluno::create($request->validated());
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Aluno cadastrado com sucesso!']);
+        }
+        return redirect('/')->with('success', 'Aluno cadastrado com sucesso!');
+    }
 
-    // 2. Passe APENAS os dados validados para o create()
-    Aluno::create($validatedData);
-
-    return redirect('/')->with('success', 'Aluno cadastrado com sucesso!');
-}
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Aluno $aluno)
-{
-    // Graças ao Route Model Binding, o Laravel já encontrou o aluno
-    // pelo ID na URL e o injetou aqui na variável $aluno.
-    // Nós só precisamos retornar a view e passar o aluno para ela.
-    return view('alunos.show', compact('aluno'));
-}
+    {
+        return view('alunos.show', compact('aluno'));
+    }
 
     /**
-     * Show the form for editing the specified resource.
+     * ATUALIZADO: Retorna apenas a view do formulário para a modal.
      */
     public function edit(Aluno $aluno)
     {
-    $turmas = Turma::all(); // Busca todas as turmas
-    return view('alunos.edit', compact('aluno', 'turmas')); // Envia para a view
+        $turmas = Turma::orderBy('nome')->get();
+        return view('alunos._form', compact('aluno', 'turmas'));
     }
 
     /**
-     * Update the specified resource in storage.
+     * ATUALIZADO: Atualiza e retorna uma resposta JSON.
      */
-    public function update(Request $request, Aluno $aluno)
-{
-    // Valida os dados enviados pelo formulário
-    $validatedData = $request->validate([
-        'nome_aluno' => 'required|string|max:255',
-        'nome_responsavel' => 'required|string|max:255',
-        'numero_caixa' => 'required|string|max:50',
-        'numero_pasta' => 'required|string|max:50',
-        'data_nascimento' => 'required|date',
-        'obs' => 'nullable|string',
-        'turma_id' => 'nullable|exists:turmas,id' 
-    ]);
+    public function update(StoreAlunoRequest $request, Aluno $aluno)
+    {
+        $aluno->update($request->validated());
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Dados do aluno atualizados com sucesso!']);
+        }
+        return redirect('/')->with('success', 'Dados do aluno atualizados com sucesso!');
+    }
 
-    // Atualiza o registro do aluno com os dados validados
-    $aluno->update($validatedData);
-
-    return redirect('/')->with('success', 'Dados do aluno atualizados com sucesso!');
+    public function destroy(Aluno $aluno)
+    {
+        $aluno->delete();
+        return redirect('/')->with('success', 'Aluno excluído com sucesso!');
+    }
 }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-   public function destroy(Aluno $aluno)
-{
-    // A variável $aluno já é o registro do aluno que queremos apagar
-    $aluno->delete();
-
-    // Redireciona de volta para a página inicial com uma mensagem de sucesso
-    return redirect('/')->with('success', 'Aluno excluído com sucesso!');
-}
-
-} // <-- Chave de fechamento da CLASSE

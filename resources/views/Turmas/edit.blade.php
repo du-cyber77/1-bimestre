@@ -7,7 +7,11 @@
     <form action="{{ route('turmas.update', $turma->id) }}" method="POST" novalidate>
         @method('PUT')
         @include('turmas._form')
-        <a href="{{ route('turmas.index') }}" class="btn btn-secondary">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Atualizar</button>
+        <a href="{{ route('turmas.index') }}" class="btn btn-secondary">
+    <i class="fas fa-times me-2"></i>Cancelar
+</a>
+<button type="submit" class="btn btn-primary">
+    <i class="fas fa-save me-2"></i>Atualizar
+</button>
     </form>
 @endsection
