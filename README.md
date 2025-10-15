@@ -14,17 +14,15 @@ Um sistema de gerenciamento de alunos e turmas desenvolvido em Laravel.
 ## 🚀 Tecnologias Utilizadas
 
 Backend:
-PHP
+PHP /
 Laravel
 
 Frontend:
-Bootstrap
-Font Awesome
-Chart.js
+Bootstrap /
+Font Awesome /
+Chart.js /
 Vite
 
 Banco de Dados:
 Postgress
-MySQL
 
-SQLite (para desenvolvimento)
