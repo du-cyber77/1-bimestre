@@ -57,64 +57,195 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // ... (bloco de variáveis globais e lógica da busca dinâmica continuam os mesmos) ...
-
-            // --- LÓGICA GLOBAL DAS MODAIS ---
             
-            // O event listener de click agora é mais inteligente
-            document.body.addEventListener('click', function (e) {
-                const createLink = e.target.closest('a[href*="/alunos/create"]');
-                const editLink = e.target.closest('a[href*="/edit"]');
-                // ***** INÍCIO DA CORREÇÃO *****
-                const addAlunoBtn = e.target.closest('#add-aluno-btn');
-
-                if (createLink) {
-                    e.preventDefault();
-                    openFormModal(createLink.href, 'Cadastrar Novo Aluno');
-                } else if (editLink) {
-                    e.preventDefault();
-                    openFormModal(editLink.href, 'Editar Dados do Aluno');
-                } else if (addAlunoBtn) {
-                    e.preventDefault();
-                    const turmaId = addAlunoBtn.dataset.turmaId;
-                    const createUrl = '{{ route("alunos.create") }}';
-                    openFormModal(createUrl, 'Adicionar Novo Aluno à Turma');
-
-                    // Este evento garante que vamos pré-selecionar a turma DEPOIS que a modal abrir e o formulário carregar
-                    formModalElement.addEventListener('shown.bs.modal', function handler() {
-                        const turmaSelect = formModalElement.querySelector('#turma_id');
-                        if (turmaSelect) {
-                            turmaSelect.value = turmaId;
-                        }
-                        // Remove o listener para não acumular execuções
-                        formModalElement.removeEventListener('shown.bs.modal', handler);
-                    }, { once: true }); // A opção { once: true } é uma forma mais segura de fazer isso
-                }
-                // ***** FIM DA CORREÇÃO *****
-            });
-
-            // O resto do seu script (handleFormSubmission, openFormModal, etc.) continua exatamente o mesmo.
-            // Colei novamente para garantir que você tenha a versão mais completa e estável.
-            
+            // --- VARIÁVEIS GLOBAIS ---
             const formModalElement = document.getElementById('formModal');
             const formModal = formModalElement ? new bootstrap.Modal(formModalElement) : null;
             const modalBody = formModalElement ? formModalElement.querySelector('.modal-body') : null;
             const modalTitle = formModalElement ? formModalElement.querySelector('.modal-title') : null;
+            
+            const toastElement = document.getElementById('notificationToast');
+            const toast = toastElement ? new bootstrap.Toast(toastElement, { delay: 3000 }) : null;
+            const toastBody = document.getElementById('toast-body');
+
+            // --- LÓGICA DA BUSCA DINÂMICA (Seu código original) ---
+            const filterForm = document.getElementById('filter-form');
+            if (filterForm) {
+                let debounceTimer;
+                filterForm.addEventListener('input', function(e) {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const formData = new FormData(filterForm);
+                        const params = new URLSearchParams(formData);
+                        // Adiciona um parâmetro para identificar a requisição AJAX
+                        params.append('ajax', '1'); 
+                        
+                        const url = window.location.pathname + '?' + params.toString();
+
+                        fetch(url, {
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById('alunos-table-body').innerHTML = data.lista;
+                            document.getElementById('pagination-container').innerHTML = data.paginacao;
+                        });
+                    }, 300);
+                });
+            }
+
+            // --- LÓGICA GLOBAL DAS MODAIS (Seu código original, com a correção do btn-edit-modal) ---
+            document.body.addEventListener('click', function (e) {
+                const createLink = e.target.closest('a[href*="/create"]');
+                const editLink = e.target.closest('.btn-edit-modal'); // Usando a classe que adicionamos
+                const addAlunoBtn = e.target.closest('#add-aluno-btn');
+
+                if (createLink) {
+                    e.preventDefault();
+                    let title = createLink.href.includes('turmas') ? 'Cadastrar Nova Turma' : 'Cadastrar Novo Aluno';
+                    openFormModal(createLink.href, title);
+                } else if (editLink) {
+                    e.preventDefault();
+                    let title = editLink.href.includes('turmas') ? 'Editar Turma' : 'Editar Dados do Aluno';
+                    openFormModal(editLink.href, title);
+                } else if (addAlunoBtn) {
+                    // ... (sua lógica para o botão de adicionar aluno na turma)
+                }
+            });
+
+            // --- LÓGICA DE CONFIRMAÇÃO DE EXCLUSÃO (Que adicionamos) ---
+            document.body.addEventListener('submit', function(e) {
+                if (e.target.classList.contains('delete-form')) {
+                    if (!confirm('Tem certeza que deseja excluir?')) {
+                        e.preventDefault(); 
+                    }
+                }
+            });
+
+            // --- FUNÇÕES AUXILIARES ---
 
             function openFormModal(url, title) {
                 if (!formModal) return;
                 modalTitle.textContent = title;
                 modalBody.innerHTML = '<div class="d-flex justify-content-center p-5"><div class="spinner-border text-primary" style="width: 3rem; height: 3rem;"></div></div>';
                 formModal.show();
-                fetch(url).then(response => response.text()).then(html => {
-                    modalBody.innerHTML = html;
-                    handleFormSubmission();
+                fetch(url)
+                    .then(response => response.text())
+                    .then(html => {
+                        modalBody.innerHTML = html;
+                        // Anexa o listener de submit AO FORMULÁRIO que acabou de ser carregado
+                        handleFormSubmission(); 
+                    });
+            }
+
+            /**
+             * Anexa o listener de submit ao formulário dentro da modal
+             */
+            function handleFormSubmission() {
+                const form = modalBody.querySelector('form');
+                if (!form) return;
+
+                form.addEventListener('submit', function (e) {
+                    
+                    // 1. Limpa erros de validação anteriores (do backend)
+                    clearValidationErrors(form);
+
+                    // ***** INÍCIO DA CORREÇÃO *****
+                    // 2. Checa a validação nativa do HTML5 (campos 'required', 'type=date', etc.)
+                    if (!form.checkValidity()) {
+                        e.preventDefault();  // Impede o envio
+                        e.stopPropagation(); // Para o evento
+
+                        // Adiciona a classe do Bootstrap para MOSTRAR as mensagens de erro
+                        form.classList.add('was-validated'); 
+                        return; // Para a execução aqui, não envia o fetch.
+                    }
+                    // ***** FIM DA CORREÇÃO *****
+
+                    // 3. Se a validação do HTML5 passou, envia o AJAX
+                    e.preventDefault();
+                    
+                    const formData = new FormData(form);
+                    const url = form.action;
+                    const method = form.method;
+                    const submitButton = form.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Salvando...';
+
+                    fetch(url, {
+                        method: method,
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            formModal.hide();
+                            showToast(data.message, 'bg-success');
+                            // Recarrega a página para ver as mudanças
+                            window.location.reload(); 
+                        }
+                    })
+                    .catch(error => {
+                        error.json().then(data => {
+                            if (data.errors) {
+                                // Se for erro de validação do Laravel (422)
+                                displayValidationErrors(form, data.errors);
+                            } else {
+                                // Outro erro (500, etc)
+                                showToast('Ocorreu um erro inesperado.', 'bg-danger');
+                            }
+                        });
+                    })
+                    .finally(() => {
+                        // Reabilita o botão
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="fas fa-save me-1"></i>Salvar';
+                    });
                 });
             }
 
-            function handleFormSubmission() {
-                // A sua função handleFormSubmission completa vai aqui
+            /**
+             * Mostra os erros de validação vindos do Laravel
+             */
+            function displayValidationErrors(form, errors) {
+                for (const field in errors) {
+                    const input = form.querySelector(`[name="${field}"]`);
+                    const errorDiv = form.querySelector(`.invalid-feedback[data-field="${field}"]`);
+                    if (input) {
+                        input.classList.add('is-invalid');
+                    }
+                    if (errorDiv) {
+                        errorDiv.textContent = errors[field][0]; // Mostra o primeiro erro
+                    }
+                }
             }
+
+            /**
+             * Limpa as classes e mensagens de erro
+             */
+            function clearValidationErrors(form) {
+                // Remove a classe de validação do HTML5
+                form.classList.remove('was-validated'); 
+
+                // Remove as classes de erro do Laravel
+                form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                form.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            }
+
+            /**
+             * Mostra a notificação (toast)
+             */
+            function showToast(message, bgClass) {
+                if (!toast) return;
+                toastBody.textContent = message;
+                toastElement.className = 'toast align-items-center text-white border-0 ' + bgClass; // Reseta as classes
+                toast.show();
+            }
+
         });
     </script>
 </body>

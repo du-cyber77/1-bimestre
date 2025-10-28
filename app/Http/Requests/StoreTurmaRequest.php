@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreTurmaRequest extends FormRequest
 {
@@ -23,16 +24,20 @@ class StoreTurmaRequest extends FormRequest
      */
     public function rules(): array
     {
-        // Pega a turma da rota, se estivermos na rota de 'update'.
-        // Ex: /turmas/5
-        $turmaId = $this->route('turma') ? $this->route('turma')->id : null;
+        // 1. Obtém o objeto Turma da rota, que é injetado pelo Route Model Binding.
+        // Se estivermos na rota 'store', $this->turma será null.
+        // Se estivermos na rota 'update', $this->turma será o objeto App\Models\Turma.
+        $turma = $this->route('turma'); 
+
+        // 2. Cria a regra de unicidade
+        $uniqueRule = Rule::unique('turmas', 'nome')
+                          // O ignore() pode receber o ID ou o objeto Model
+                          // Se $turma for null, o ignore() será ignorado.
+                          ->ignore($turma); 
 
         return [
-            // A regra 'unique' foi aprimorada:
-            // Ela vai garantir que o nome da turma seja único na tabela 'turmas'.
-            // Ao ATUALIZAR, ela vai ignorar o ID da própria turma que estamos editando,
-            // permitindo que a gente salve sem receber um erro de "nome já existe".
-            'nome' => 'required|string|max:255|unique:turmas,nome,' . $turmaId,
+            // Agora usamos a sintaxe de array, passando o objeto Rule.
+            'nome' => ['required', 'string', 'max:255', $uniqueRule],
         ];
     }
 }

@@ -7,19 +7,19 @@
     <div class="row">
         <div class="col-md-6 mb-3">
             <label for="nome_aluno" class="form-label">Nome do Aluno:</label>
-            <input type="text" class="form-control" id="nome_aluno" name="nome_aluno" value="{{ old('nome_aluno', $aluno->nome_aluno) }}">
+            <input type="text" class="form-control" id="nome_aluno" name="nome_aluno" value="{{ old('nome_aluno', $aluno->nome_aluno) }}" required>
             <div class="invalid-feedback" data-field="nome_aluno"></div>
         </div>
         <div class="col-md-6 mb-3">
             <label for="nome_responsavel" class="form-label">Nome do Responsável:</label>
-            <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" value="{{ old('nome_responsavel', $aluno->nome_responsavel) }}">
+            <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" value="{{ old('nome_responsavel', $aluno->nome_responsavel) }}" required>
             <div class="invalid-feedback" data-field="nome_responsavel"></div>
         </div>
     </div>
     <div class="row">
         <div class="col-md-6 mb-3">
             <label for="data_nascimento" class="form-label">Data de Nascimento:</label>
-            <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento', optional($aluno->data_nascimento)->format('Y-m-d')) }}">
+            <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento', optional($aluno->data_nascimento)->format('Y-m-d')) }}" required>
             <div class="invalid-feedback" data-field="data_nascimento"></div>
         </div>
         <div class="col-md-6 mb-3">
