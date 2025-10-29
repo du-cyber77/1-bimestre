@@ -14,6 +14,7 @@
         </td>
         <td>{{ $aluno->data_nascimento->format('d/m/Y') }}</td>
         <td class="text-center">
+            
             <a href="{{ route('alunos.modal.edit', $aluno->id) }}" 
                class="btn btn-warning btn-sm" 
                title="Editar"

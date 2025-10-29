@@ -1,5 +1,3 @@
-{{-- resources/views/turmas/_form.blade.php --}}
-
 @php
     $isEdit = $turma->exists;
     $actionUrl = $isEdit ? route('turmas.update', $turma) : route('turmas.store');
