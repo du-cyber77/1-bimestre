@@ -4,27 +4,40 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AlunoController;
 use App\Http\Controllers\TurmaController;
 use App\Http\Controllers\ReportController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
 */
 
-// Rota principal que carrega a view do painel
+// Rota principal que carrega o painel e a lista (agora com filtro)
 Route::get('/', [AlunoController::class, 'index'])->name('home');
 
-// NOVA ROTA: Endpoint para a busca em tempo real (AJAX)
-Route::get('/alunos/search', [AlunoController::class, 'search'])->name('alunos.search');
+// Rotas de resource para Alunos (apenas as ações de backend)
+Route::resource('alunos', AlunoController::class)->only([
+    'store', 'update', 'destroy', 'show'
+]);
 
-// Rotas de resource para Alunos (exceto o index, que já definimos como 'home')
-Route::resource('alunos', AlunoController::class)->except(['index']);
+// Rotas de resource para Turmas (ações de backend e a listagem)
+Route::resource('turmas', TurmaController::class)->except([
+    'create', 'edit' // Vamos usar as rotas de modal
+]);
 
-// Rotas de resource para Turmas
-Route::resource('turmas', TurmaController::class);
+// --- NOVAS ROTAS PARA CARREGAR MODAIS ---
 
+// Rotas para Modais de Alunos
+Route::get('/modal/alunos/create', [AlunoController::class, 'createModal'])
+     ->name('alunos.modal.create');
+Route::get('/modal/alunos/{aluno}/edit', [AlunoController::class, 'editModal'])
+     ->name('alunos.modal.edit');
+
+// Rotas para Modais de Turmas
+Route::get('/modal/turmas/create', [TurmaController::class, 'createModal'])
+     ->name('turmas.modal.create');
+Route::get('/modal/turmas/{turma}/edit', [TurmaController::class, 'editModal'])
+     ->name('turmas.modal.edit');
+
+
+// Rota de Relatórios
 Route::get('/relatorios', [ReportController::class, 'index'])->name('reports.index');

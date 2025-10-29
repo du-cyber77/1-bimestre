@@ -1,6 +1,21 @@
-<form action="{{ $aluno->exists ? route('alunos.update', $aluno) : route('alunos.store') }}" method="POST" id="alunoForm" novalidate>
+@php
+    // Define as variáveis com base em "edição" ou "criação"
+    $isEdit = $aluno->exists;
+    $actionUrl = $isEdit ? route('alunos.update', $aluno) : route('alunos.store');
+    $method = $isEdit ? 'PUT' : 'POST';
+    $title = $isEdit ? 'Editar Aluno' : 'Cadastrar Novo Aluno';
+@endphp
+
+<form action="{{ $actionUrl }}" 
+      method="POST" 
+      id="alunoForm"
+      novalidate
+      data-action="{{ $actionUrl }}"
+      data-method="{{ $method }}"
+      data-title="{{ $title }}">
+    
     @csrf
-    @if ($aluno->exists)
+    @if ($isEdit)
         @method('PUT')
     @endif
 
